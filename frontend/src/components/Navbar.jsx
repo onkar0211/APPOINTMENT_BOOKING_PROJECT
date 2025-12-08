@@ -1,11 +1,12 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Button } from './ui/button'
-import { Calendar, LayoutDashboard, Plus, List, User } from 'lucide-react'
+import { Calendar, LayoutDashboard, Plus, List, User, LogOut } from 'lucide-react'
 
 const Navbar = () => {
-  const { user } = useAuth()
+  const { user, logout, isAuthenticated } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -13,6 +14,15 @@ const Navbar = () => {
     { path: '/book', label: 'Book', icon: Plus },
     { path: '/appointments', label: 'Appointments', icon: List },
   ]
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
+
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
@@ -47,8 +57,12 @@ const Navbar = () => {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted">
               <User className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium hidden sm:inline">{user?.name || 'Guest'}</span>
+              <span className="text-sm font-medium hidden sm:inline">{user?.name || 'User'}</span>
             </div>
+            <Button variant="ghost" onClick={handleLogout} className="gap-2">
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Logout</span>
+            </Button>
           </div>
         </div>
       </div>

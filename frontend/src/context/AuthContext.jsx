@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { authService } from '../services/api'
 
 const AuthContext = createContext()
 
@@ -12,54 +11,63 @@ export const useAuth = () => {
 }
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState({ name: 'Guest', email: 'guest@example.com' })
+  const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    // No authentication required - set loading to false immediately
+    // Check if user is stored in localStorage
+    const storedUser = localStorage.getItem('user')
+    if (storedUser) {
+      setUser(JSON.parse(storedUser))
+    }
     setLoading(false)
   }, [])
 
   const login = async (email, password) => {
-    try {
-      setError(null)
-      const response = await authService.login(email, password)
-      const { token, refreshToken, user } = response
-      
-      localStorage.setItem('token', token)
-      localStorage.setItem('refreshToken', refreshToken)
-      setUser(user)
-      
-      return { success: true }
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Login failed'
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
+    // Accept any email and password - no validation needed
+    setError(null)
+    setLoading(true)
+    
+    // Simulate a small delay for better UX
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    const userData = {
+      name: email.split('@')[0] || 'User',
+      email: email,
+      id: Date.now()
     }
+    
+    setUser(userData)
+    localStorage.setItem('user', JSON.stringify(userData))
+    setLoading(false)
+    
+    return { success: true }
   }
 
   const register = async (userData) => {
-    try {
-      setError(null)
-      const response = await authService.register(userData)
-      const { token, refreshToken, user } = response
-      
-      localStorage.setItem('token', token)
-      localStorage.setItem('refreshToken', refreshToken)
-      setUser(user)
-      
-      return { success: true }
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Registration failed'
-      setError(errorMessage)
-      return { success: false, error: errorMessage }
+    // Accept any registration data - no validation needed
+    setError(null)
+    setLoading(true)
+    
+    // Simulate a small delay for better UX
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    const newUser = {
+      name: userData.name || 'User',
+      email: userData.email,
+      id: Date.now()
     }
+    
+    setUser(newUser)
+    localStorage.setItem('user', JSON.stringify(newUser))
+    setLoading(false)
+    
+    return { success: true }
   }
 
   const logout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('refreshToken')
+    localStorage.removeItem('user')
     setUser(null)
   }
 
@@ -70,7 +78,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    isAuthenticated: true // Always authenticated for demo purposes
+    isAuthenticated: !!user
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
