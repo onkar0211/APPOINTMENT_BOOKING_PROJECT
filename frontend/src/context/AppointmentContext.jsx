@@ -12,6 +12,7 @@ export const useAppointments = () => {
 }
 
 export const AppointmentProvider = ({ children }) => {
+  
   const [appointments, setAppointments] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
