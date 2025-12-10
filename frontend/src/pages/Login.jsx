@@ -16,7 +16,7 @@ const Login = () => {
   
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { login, isAuthenticated } = useAuth()
+  const { login, isAuthenticated } = useAuth() //
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -32,6 +32,11 @@ const Login = () => {
     })
     setError('')
   }
+
+  // e.target.name : onkar@mail.com
+  // mail : onkar@mail.com
+  //e.target.name : 12345
+  //password : 12345 
 
   const handleSubmit = async (e) => {
     e.preventDefault()

@@ -37,7 +37,7 @@ const BookAppointment = () => {
     setFormData({
       ...formData,
       [name]: value,
-      // Reset serviceType when businessType changes
+      
       ...(name === 'businessType' && { serviceType: '' })
     })
     setError('')

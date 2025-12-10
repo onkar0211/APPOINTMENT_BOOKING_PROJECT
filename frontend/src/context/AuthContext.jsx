@@ -16,7 +16,6 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    // Check if user is stored in localStorage
     const storedUser = localStorage.getItem('user')
     if (storedUser) {
       setUser(JSON.parse(storedUser))
@@ -25,44 +24,57 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   const login = async (email, password) => {
-    // Accept any email and password - no validation needed
     setError(null)
     setLoading(true)
-    
-    // Simulate a small delay for better UX
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    const userData = {
-      name: email.split('@')[0] || 'User',
-      email: email,
-      id: Date.now()
+
+    try {
+      const res = await fetch("http://localhost:5000/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await res.json()
+
+      if (!data.success) {
+        setError(data.error)
+        setLoading(false)
+        return { success: false }
+      }
+
+      const userData = {
+        email: email,
+        token: data.token,
+      }
+
+      setUser(userData)
+      localStorage.setItem("user", JSON.stringify(userData))
+
+      setLoading(false)
+      return { success: true }
+
+    } catch (err) {
+      setError("Something went wrong")
+      setLoading(false)
+      return { success: false }
     }
-    
-    setUser(userData)
-    localStorage.setItem('user', JSON.stringify(userData))
-    setLoading(false)
-    
-    return { success: true }
   }
 
   const register = async (userData) => {
-    // Accept any registration data - no validation needed
     setError(null)
     setLoading(true)
-    
-    // Simulate a small delay for better UX
     await new Promise(resolve => setTimeout(resolve, 500))
-    
+
     const newUser = {
       name: userData.name || 'User',
       email: userData.email,
       id: Date.now()
     }
-    
+
     setUser(newUser)
     localStorage.setItem('user', JSON.stringify(newUser))
     setLoading(false)
-    
+
     return { success: true }
   }
 
@@ -83,4 +95,3 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
-
