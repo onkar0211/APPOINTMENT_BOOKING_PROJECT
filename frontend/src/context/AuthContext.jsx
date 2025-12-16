@@ -1,86 +1,70 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect } from "react";
+import axios from "axios";
 
-const AuthContext = createContext()
-
-export const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
-}
+const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [token, setToken] = useState("");
 
   useEffect(() => {
-    // Check if user is stored in localStorage
-    const storedUser = localStorage.getItem('user')
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
+    const savedToken = localStorage.getItem("token");
+    if (savedToken) {
+      setToken(savedToken);
+      setIsAuthenticated(true);
     }
-    setLoading(false)
-  }, [])
+  }, []);
+  
 
-  const login = async (email, password) => {
-    // Accept any email and password - no validation needed
-    setError(null)
-    setLoading(true)
-    
-    // Simulate a small delay for better UX
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    const userData = {
-      name: email.split('@')[0] || 'User',
-      email: email,
-      id: Date.now()
-    }
-    
-    setUser(userData)
-    localStorage.setItem('user', JSON.stringify(userData))
-    setLoading(false)
-    
-    return { success: true }
-  }
-
+  // REGISTER USER
   const register = async (userData) => {
-    // Accept any registration data - no validation needed
-    setError(null)
-    setLoading(true)
-    
-    // Simulate a small delay for better UX
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    const newUser = {
-      name: userData.name || 'User',
-      email: userData.email,
-      id: Date.now()
+    try {
+      const res = await axios.post("http://localhost:5000/register", userData);
+
+      if (res.data.success) {
+        return { success: true };
+      } else {
+        return { success: false, error: res.data.error };
+      }
+    } catch (err) {
+      return { success: false, error: "Server error" };
     }
-    
-    setUser(newUser)
-    localStorage.setItem('user', JSON.stringify(newUser))
-    setLoading(false)
-    
-    return { success: true }
-  }
+  };
 
+  
+  // LOGIN USER
+  const login = async (email, password) => {
+    try {
+      const res = await axios.post("http://localhost:5000/login", {
+        email,
+        password,
+      });
+
+      if (res.data.success) {
+        localStorage.setItem("token", res.data.token);
+        setToken(res.data.token);
+        setIsAuthenticated(true);
+        return { success: true };
+      } else {
+        return { success: false, error: res.data.error };
+      }
+    } catch (err) {
+      return { success: false, error: "Server error" };
+    }
+  };
+
+  // LOGOUT
   const logout = () => {
-    localStorage.removeItem('user')
-    setUser(null)
-  }
+    localStorage.removeItem("token");
+    setToken("");
+    setIsAuthenticated(false);
+  };
 
-  const value = {
-    user,
-    loading,
-    error,
-    login,
-    register,
-    logout,
-    isAuthenticated: !!user
-  }
+  return (
+    <AuthContext.Provider value={{ register, login, logout, isAuthenticated }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
-
+export const useAuth = () => useContext(AuthContext);
